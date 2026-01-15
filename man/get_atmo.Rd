@@ -2,27 +2,22 @@
 % Please edit documentation in R/functions.R
 \name{get_atmo}
 \alias{get_atmo}
-\title{Récupérer l'historique complet sur plusieurs années}
+\title{Récupérer les données de mesures pour une année précise}
 \usage{
-get_atmo(
-  df_stations,
-  polluant_id,
-  annee_debut,
-  annee_fin = as.numeric(format(Sys.Date(), "\%Y"))
-)
+get_atmo(station_input, polluant_ids, year, df_stations_ref = NULL)
 }
 \arguments{
-\item{df_stations}{Data.frame de stations (issu de get_list_stations).}
+\item{station_input}{Un vecteur d'ID de stations ou un data.frame issu de get_list_stations.}
 
-\item{polluant_id}{Vecteur de codes polluants.}
+\item{polluant_ids}{Vecteur de codes polluants (ex: c("24", "08")).}
 
-\item{annee_debut}{Année de départ.}
+\item{year}{Année au format numérique (ex: 2024).}
 
-\item{annee_fin}{Année de fin (par défaut année en cours).}
+\item{df_stations_ref}{Data.frame de référence pour joindre les noms de stations.}
 }
 \value{
-Un data.frame consolidé.
+Un data.frame des mesures ou NULL si aucune donnée n'est trouvée.
 }
 \description{
-Récupérer l'historique complet sur plusieurs années
+Récupérer les données de mesures pour une année précise
 }

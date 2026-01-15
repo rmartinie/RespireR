@@ -2,22 +2,27 @@
 % Please edit documentation in R/functions.R
 \name{get_atmo_bulk}
 \alias{get_atmo_bulk}
-\title{Récupérer les données de mesures pour une année précise}
+\title{Récupérer l'historique complet sur plusieurs années}
 \usage{
-get_atmo_bulk(station_input, polluant_ids, year, df_stations_ref = NULL)
+get_atmo_bulk(
+  df_stations,
+  polluant_id,
+  annee_debut,
+  annee_fin = as.numeric(format(Sys.Date(), "\%Y"))
+)
 }
 \arguments{
-\item{station_input}{Un vecteur d'ID de stations ou un data.frame issu de get_list_stations.}
+\item{df_stations}{Data.frame de stations (issu de get_list_stations).}
 
-\item{polluant_ids}{Vecteur de codes polluants (ex: c("24", "08")).}
+\item{polluant_id}{Vecteur de codes polluants.}
 
-\item{year}{Année au format numérique (ex: 2024).}
+\item{annee_debut}{Année de départ.}
 
-\item{df_stations_ref}{Data.frame de référence pour joindre les noms de stations.}
+\item{annee_fin}{Année de fin (par défaut année en cours).}
 }
 \value{
-Un data.frame des mesures ou NULL si aucune donnée n'est trouvée.
+Un data.frame consolidé.
 }
 \description{
-Récupérer les données de mesures pour une année précise
+Récupérer l'historique complet sur plusieurs années
 }

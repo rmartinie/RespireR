@@ -35,7 +35,7 @@ get_list_stations <- function() {
 #' @param df_stations_ref Data.frame de référence pour joindre les noms de stations.
 #' @return Un data.frame des mesures ou NULL si aucune donnée n'est trouvée.
 #' @export
-get_atmo_bulk <- function(station_input, polluant_ids, year, df_stations_ref = NULL) {
+get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) {
 
   # 1. Table de correspondance des polluants (Format interne à 2 chiffres)
   ref_polluants <- data.frame(
@@ -136,7 +136,7 @@ get_atmo_bulk <- function(station_input, polluant_ids, year, df_stations_ref = N
 #' @param annee_fin Année de fin (par défaut année en cours).
 #' @return Un data.frame consolidé.
 #' @export
-get_atmo <- function(df_stations, polluant_id, annee_debut, annee_fin = as.numeric(format(Sys.Date(), "%Y"))) {
+get_atmo_bulk <- function(df_stations, polluant_id, annee_debut, annee_fin = as.numeric(format(Sys.Date(), "%Y"))) {
 
   if (annee_debut > annee_fin) {
     stop("L'année de début ne peut pas être supérieure à l'année de fin.")
