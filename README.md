@@ -1,11 +1,11 @@
-# Données Atmo Auvergne-Rhône-Alpes (R)
+# RespireR
 
-Qurlques fonction R pour récupérer les mesures de qualité de l’air en Auvergne-Rhône-Alpes à partir des API publiques d’Atmo AURA.
+Quelques fonction R pour récupérer les mesures de qualité de l’air en Auvergne-Rhône-Alpes à partir des API publiques d’Atmo AURA.
 
-L’objectif est simple :\
-- lister les stations fixes\
-- récupérer des mesures (NO2, PM10, PM2.5, O3, SO2)\
-- sur une ou plusieurs stations\
+L’objectif est simple :
+- lister les stations fixes
+- récupérer des mesures (NO2, PM10, PM2.5, O3, SO2)
+- sur une ou plusieurs stations
 - pour une ou plusieurs années
 
 Ce n’est pas un package ultra-générique, mais plutôt un outil pratique pour explorer rapidement de façon automatisée les données Atmo côté Rhône-Alpes.
