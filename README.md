@@ -63,7 +63,7 @@ stations <- df_stations_ref %>%
   dplyr::filter(id_station %in% c("FR20017", "FR20062"))
 
 # 3. On lance la récupération de l'historique
-df_complet <- get_atmo_history(
+df_complet <- get_atmo_bulk(
   df_stations = stations, 
   polluant_id = c(24, 01),   # PM10 et SO2
   annee_debut = 2024,
