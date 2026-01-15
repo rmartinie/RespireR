@@ -62,7 +62,7 @@ Récupère l’historique **sur plusieurs années**, et sort tout dans un seul t
 
 ```{r}
 library(RespireR)
-library(dplyr)
+
 df_stations_ref <- get_list_stations()
 
 # Ici, on sélectionne deux stations lyonnaises par exemple
