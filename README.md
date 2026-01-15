@@ -77,7 +77,7 @@ df_stations_ref <- get_list_stations()
 
 ``` r
 # Ici, on sélectionne deux stations lyonnaises par exemple
-stations_cibles <- df_stations_ref %>% 
+stations_cibles <- df_stations_ref |>
   dplyr::filter(id_station %in% c("FR20017", "FR20062"))
 
 
