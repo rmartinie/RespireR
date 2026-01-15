@@ -120,7 +120,6 @@ ggplot(df_mesures, aes(x = date, y = valeur, color = nom_polluant)) +
   facet_wrap(~nom_station, ncol = 1) +
   theme_minimal() +
   labs(title = "Qualité de l'air - Atmo AURA",
-       subtitle = "Données extraites via RespireR",
        y = "Concentration (µg/m³)", x = "Date")
 ```
 
