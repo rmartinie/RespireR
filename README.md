@@ -36,7 +36,7 @@ Récupère les mesures **pour une année donnée**.
 - polluants : codes numériques (ex : `24` pour PM10, `01` pour SO2)
 - année : ex `2024`
 
-### `get_atmo_history()`
+### `get_atmo_bulk()`
 
 Récupère l’historique **sur plusieurs années**, et sort tout dans un
 seul tableau.
