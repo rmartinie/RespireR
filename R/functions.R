@@ -1,9 +1,14 @@
+
+utils::globalVariables(c("id_station", "nom_station", "valeur", "station", "polluant", "nom_polluant", ".data"))
+
 #' Récupérer la liste des stations Atmo Auvergne-Rhône-Alpes
 #'
 #' @return Un data.frame contenant les colonnes id_station, nom_station, date_debut, date_fin, en_service et typologie.
 #' @export
 #' @importFrom jsonlite fromJSON
 #' @importFrom dplyr rename_with select
+
+
 get_list_stations <- function() {
   url <- "https://sig.atmo-auvergnerhonealpes.fr/geoserver/opendata/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=opendata:stations_fixes_en_service&outputFormat=application/json"
 
