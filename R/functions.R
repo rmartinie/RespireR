@@ -64,9 +64,9 @@ get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) 
   # 3. Fonction interne pour un couple (station, polluant)
   fetch_data <- function(sid, pid) {
 
-    # CRUCIAL : L'API Atmo attend l'ID brut pour l'URL (ex: 8 et non 08)
-    # C'est ce qui causait l'erreur dans votre version package
-    pid_url <- as.numeric(pid)
+    # On s'assure que le PID envoyé à l'URL est toujours sur 2 chiffres avec un zéro initial
+    # sprintf("%02d", ...) transforme 8 en "08" et garde "08" tel quel.
+    pid_url <- sprintf("%02d", as.numeric(pid))
 
     url <- paste("https://www.atmo-auvergnerhonealpes.fr/dataviz/dataviz/mesures",
                  sid, pid_url, date_debut, date_fin, sep = "/")
@@ -75,28 +75,25 @@ get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) 
       res <- httr::GET(url)
       if (httr::status_code(res) != 200) return(NULL)
 
-      # Lecture du contenu JSON
       content_text <- httr::content(res, "text", encoding = "UTF-8")
       raw_data <- jsonlite::fromJSON(content_text)
 
-      # Vérification si données vides
       if (length(raw_data) == 0) return(NULL)
       df <- as.data.frame(raw_data)
       if (nrow(df) == 0) return(NULL)
 
-      # Formatage du dataframe
       df <- df |>
         dplyr::select(date = 1, valeur = 2) |>
         dplyr::mutate(
           date = as.Date(as.POSIXct(date / 1000, origin = "1970-01-01", tz = "UTC")),
           station = as.character(sid),
-          polluant = pid # On garde l'ID "08" pour la jointure avec ref_polluants
+          polluant = pid # On garde l'ID original pour la jointure
         )
       return(df)
     }, error = function(e) return(NULL))
   }
 
-  # 4. Double boucle via expand.grid (Votre logique de base)
+  # 4. Double boucle via expand.grid
   message("Lancement : ", length(ids_to_fetch), " stations x ", length(polluant_ids), " polluants...")
   all_combinations <- expand.grid(sid = ids_to_fetch, pid = polluant_ids, stringsAsFactors = FALSE)
 
