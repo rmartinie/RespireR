@@ -71,8 +71,9 @@ stations_cibles <- df_stations_ref |>
 df_mesures <- get_atmo_bulk(
   df_stations = stations_cibles, 
   polluant_id = c("24", "01"), 
-  annee_debut = 2024, 
-  annee_fin = 2025
+  date_debut  = "2024-01-01",
+  date_fin    = "2025-01-03",
+  hourly      = FALSE
 )
 ```
 
@@ -108,5 +109,8 @@ ggplot(df_mesures, aes(x = date, y = valeur, color = nom_polluant)) +
   labs(title = "Qualité de l'air - Atmo AURA",
        y = "Concentration (µg/m³)", x = "Date")
 ```
+
+    ## Warning: Removed 4 rows containing missing values or values outside the scale range
+    ## (`geom_line()`).
 
 ![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->

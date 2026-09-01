@@ -74,8 +74,9 @@ stations_cibles <- df_stations_ref |>
 df_mesures <- get_atmo_bulk(
   df_stations = stations_cibles, 
   polluant_id = c("24", "01"), 
-  annee_debut = 2024, 
-  annee_fin = 2025
+  date_debut  = "2024-01-01",
+  date_fin    = "2025-01-03",
+  hourly      = FALSE
 )
 
 

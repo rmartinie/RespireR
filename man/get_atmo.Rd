@@ -2,16 +2,27 @@
 % Please edit documentation in R/functions.R
 \name{get_atmo}
 \alias{get_atmo}
-\title{Récupérer les données de mesures pour une année précise}
+\title{Récupérer les données de mesures Atmo (quotidiennes ou horaires)}
 \usage{
-get_atmo(station_input, polluant_ids, year, df_stations_ref = NULL)
+get_atmo(
+  station_input,
+  polluant_ids,
+  date_debut,
+  date_fin = date_debut,
+  hourly = FALSE,
+  df_stations_ref = NULL
+)
 }
 \arguments{
 \item{station_input}{Un vecteur d'ID de stations ou un data.frame issu de get_list_stations.}
 
 \item{polluant_ids}{Vecteur de codes polluants (ex: c("24", "08")).}
 
-\item{year}{Année au format numérique (ex: 2024).}
+\item{date_debut}{Date de début ("YYYY-MM-DD" ou objet Date).}
+
+\item{date_fin}{Date de fin ("YYYY-MM-DD" ou objet Date). Par défaut égale à date_debut.}
+
+\item{hourly}{Si TRUE, renvoie les valeurs horaires (POSIXct) plutôt que journalières (Date). Défaut FALSE.}
 
 \item{df_stations_ref}{Data.frame de référence pour joindre les noms de stations.}
 }
@@ -19,5 +30,5 @@ get_atmo(station_input, polluant_ids, year, df_stations_ref = NULL)
 Un data.frame des mesures ou NULL si aucune donnée n'est trouvée.
 }
 \description{
-Récupérer les données de mesures pour une année précise
+Récupérer les données de mesures Atmo (quotidiennes ou horaires)
 }

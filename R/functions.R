@@ -1,4 +1,3 @@
-
 utils::globalVariables(c("id_station", "nom_station", "valeur", "station", "polluant", "nom_polluant", ".data"))
 
 #' Récupérer la liste des stations Atmo Auvergne-Rhône-Alpes
@@ -7,8 +6,6 @@ utils::globalVariables(c("id_station", "nom_station", "valeur", "station", "poll
 #' @export
 #' @importFrom jsonlite fromJSON
 #' @importFrom dplyr rename_with select
-
-
 get_list_stations <- function() {
   url <- "https://sig.atmo-auvergnerhonealpes.fr/geoserver/opendata/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=opendata:stations_fixes_en_service&outputFormat=application/json"
 
@@ -16,7 +13,7 @@ get_list_stations <- function() {
 
   data_json <- jsonlite::fromJSON(url, flatten = TRUE)
 
-  stations_df <- data_json$features |>
+  data_json$features |>
     dplyr::rename_with(~ gsub("properties.", "", .x)) |>
     dplyr::select(
       .data$id_station,
@@ -26,21 +23,21 @@ get_list_stations <- function() {
       .data$en_service,
       .data$typologie
     )
-
-  return(stations_df)
 }
 
 
-
-#' Récupérer les données de mesures pour une année précise
+#' Récupérer les données de mesures Atmo (quotidiennes ou horaires)
 #'
 #' @param station_input Un vecteur d'ID de stations ou un data.frame issu de get_list_stations.
 #' @param polluant_ids Vecteur de codes polluants (ex: c("24", "08")).
-#' @param year Année au format numérique (ex: 2024).
+#' @param date_debut Date de début ("YYYY-MM-DD" ou objet Date).
+#' @param date_fin Date de fin ("YYYY-MM-DD" ou objet Date). Par défaut égale à date_debut.
+#' @param hourly Si TRUE, renvoie les valeurs horaires (POSIXct) plutôt que journalières (Date). Défaut FALSE.
 #' @param df_stations_ref Data.frame de référence pour joindre les noms de stations.
 #' @return Un data.frame des mesures ou NULL si aucune donnée n'est trouvée.
 #' @export
-get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) {
+get_atmo <- function(station_input, polluant_ids, date_debut, date_fin = date_debut,
+                     hourly = FALSE, df_stations_ref = NULL) {
 
   # 1. Table de correspondance des polluants (Format interne à 2 chiffres)
   ref_polluants <- data.frame(
@@ -49,28 +46,29 @@ get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) 
     stringsAsFactors = FALSE
   )
 
-  # On normalise les IDs en entrée au format "08" pour la jointure
   polluant_ids <- sprintf("%02d", as.numeric(polluant_ids))
-
   if (length(polluant_ids) == 0) {
     stop("Aucun polluant fourni.")
   }
+
   # 2. Gestion des IDs de stations
-  if (is.data.frame(station_input)) {
-    # On s'assure que l'ID est bien en caractère
-    ids_to_fetch <- as.character(station_input$id_station)
+  ids_to_fetch <- if (is.data.frame(station_input)) {
+    as.character(station_input$id_station)
   } else {
-    ids_to_fetch <- as.character(station_input)
+    as.character(station_input)
   }
 
-  date_debut <- paste0(year, "-01-01")
-  date_fin   <- paste0(year, "-12-31")
+  date_debut <- as.character(as.Date(date_debut))
+  date_fin   <- as.character(as.Date(date_fin))
 
-  # 3. Fonction interne pour un couple (station, polluant)
+  # 3. Si hourly on change le format renvoyé
+  convertir_date <- function(timestamp_ms) {
+    dt <- as.POSIXct(timestamp_ms / 1000, origin = "1970-01-01", tz = "UTC")
+    if (hourly) dt else as.Date(dt)
+  }
+
+  # 4. Fonction interne pour un couple (station, polluant)
   fetch_data <- function(sid, pid) {
-
-    # On s'assure que le PID envoyé à l'URL est toujours sur 2 chiffres avec un zéro initial
-    # sprintf("%02d", ...) transforme 8 en "08" et garde "08" tel quel.
     pid_url <- sprintf("%02d", as.numeric(pid))
 
     url <- paste("https://www.atmo-auvergnerhonealpes.fr/dataviz/dataviz/mesures",
@@ -87,18 +85,17 @@ get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) 
       df <- as.data.frame(raw_data)
       if (nrow(df) == 0) return(NULL)
 
-      df <- df |>
+      df |>
         dplyr::select(date = 1, valeur = 2) |>
         dplyr::mutate(
-          date = as.Date(as.POSIXct(date / 1000, origin = "1970-01-01", tz = "UTC")),
+          date = convertir_date(date),
           station = as.character(sid),
           polluant = pid # On garde l'ID original pour la jointure
         )
-      return(df)
     }, error = function(e) return(NULL))
   }
 
-  # 4. Double boucle via expand.grid
+  # 5. Double boucle via expand.grid
   message("Lancement : ", length(ids_to_fetch), " stations x ", length(polluant_ids), " polluants...")
   all_combinations <- expand.grid(sid = ids_to_fetch, pid = polluant_ids, stringsAsFactors = FALSE)
 
@@ -110,13 +107,10 @@ get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) 
     return(NULL)
   }
 
-  # 5. Jointures finales
-
-  # Ajout du nom du polluant
+  # 6. Jointures finales
   df_final <- df_final |>
     dplyr::left_join(ref_polluants, by = c("polluant" = "id"))
 
-  # Ajout du nom de la station si la référence est fournie
   if (!is.null(df_stations_ref)) {
     df_final <- df_final |>
       dplyr::left_join(dplyr::select(df_stations_ref, id_station, nom_station),
@@ -127,30 +121,54 @@ get_atmo <- function(station_input, polluant_ids, year, df_stations_ref = NULL) 
       dplyr::select(date, valeur, station, polluant, nom_polluant)
   }
 
-  return(df_final)
+  df_final
 }
 
-#' Récupérer l'historique complet sur plusieurs années
+
+#' Récupérer l'historique complet Atmo (quotidien ou horaire) sur une plage de dates
 #'
 #' @param df_stations Data.frame de stations (issu de get_list_stations).
 #' @param polluant_id Vecteur de codes polluants.
-#' @param annee_debut Année de départ.
-#' @param annee_fin Année de fin (par défaut année en cours).
+#' @param date_debut Date de début ("YYYY-MM-DD" ou objet Date).
+#' @param date_fin Date de fin. Par défaut aujourd'hui.
+#' @param hourly Si TRUE, boucle jour par jour et renvoie des valeurs horaires.
+#'   Si FALSE (défaut), boucle année par année et renvoie des valeurs journalières.
 #' @return Un data.frame consolidé.
 #' @export
-get_atmo_bulk <- function(df_stations, polluant_id, annee_debut, annee_fin = as.numeric(format(Sys.Date(), "%Y"))) {
+get_atmo_bulk <- function(df_stations, polluant_id, date_debut, date_fin = Sys.Date(),
+                          hourly = FALSE) {
 
-  if (annee_debut > annee_fin) {
-    stop("L'année de début ne peut pas être supérieure à l'année de fin.")
+  date_debut <- as.Date(date_debut)
+  date_fin   <- as.Date(date_fin)
+
+  if (date_debut > date_fin) {
+    stop("La date de début ne peut pas être supérieure à la date de fin.")
   }
 
-  annees <- annee_debut:annee_fin
+  # Construction des périodes à parcourir : jour par jour en horaire, année par année sinon
+  periodes <- if (hourly) {
+    jours <- seq(date_debut, date_fin, by = "day")
+    lapply(jours, function(j) list(debut = j, fin = j, label = as.character(j)))
+  } else {
+    annees <- as.numeric(format(date_debut, "%Y")):as.numeric(format(date_fin, "%Y"))
+    lapply(annees, function(an) list(
+      debut = as.Date(paste0(an, "-01-01")),
+      fin   = as.Date(paste0(an, "-12-31")),
+      label = as.character(an)
+    ))
+  }
 
-  historique_complet <- lapply(annees, function(an) {
-    message("\n>>> Année : ", an)
-    get_atmo(station_input = df_stations, polluant_ids = polluant_id, year = an, df_stations_ref = df_stations)
+  historique_complet <- lapply(periodes, function(p) {
+    message("\n>>> ", if (hourly) "Jour : " else "Année : ", p$label)
+    get_atmo(
+      station_input = df_stations,
+      polluant_ids = polluant_id,
+      date_debut = p$debut,
+      date_fin = p$fin,
+      hourly = hourly,
+      df_stations_ref = df_stations
+    )
   })
 
-  df_final <- dplyr::bind_rows(historique_complet)
-  return(df_final)
+  dplyr::bind_rows(historique_complet)
 }

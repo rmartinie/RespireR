@@ -2,13 +2,14 @@
 % Please edit documentation in R/functions.R
 \name{get_atmo_bulk}
 \alias{get_atmo_bulk}
-\title{Récupérer l'historique complet sur plusieurs années}
+\title{Récupérer l'historique complet Atmo (quotidien ou horaire) sur une plage de dates}
 \usage{
 get_atmo_bulk(
   df_stations,
   polluant_id,
-  annee_debut,
-  annee_fin = as.numeric(format(Sys.Date(), "\%Y"))
+  date_debut,
+  date_fin = Sys.Date(),
+  hourly = FALSE
 )
 }
 \arguments{
@@ -16,13 +17,16 @@ get_atmo_bulk(
 
 \item{polluant_id}{Vecteur de codes polluants.}
 
-\item{annee_debut}{Année de départ.}
+\item{date_debut}{Date de début ("YYYY-MM-DD" ou objet Date).}
 
-\item{annee_fin}{Année de fin (par défaut année en cours).}
+\item{date_fin}{Date de fin. Par défaut aujourd'hui.}
+
+\item{hourly}{Si TRUE, boucle jour par jour et renvoie des valeurs horaires.
+Si FALSE (défaut), boucle année par année et renvoie des valeurs journalières.}
 }
 \value{
 Un data.frame consolidé.
 }
 \description{
-Récupérer l'historique complet sur plusieurs années
+Récupérer l'historique complet Atmo (quotidien ou horaire) sur une plage de dates
 }
